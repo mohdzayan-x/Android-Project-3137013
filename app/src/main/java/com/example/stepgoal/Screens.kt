@@ -161,9 +161,9 @@ fun HistoryScreen(onBack: () -> Unit) {
     ) {
         Text("History", fontSize = 28.sp)
         Spacer(Modifier.height(16.dp))
-        Text("Mon: 8200 steps", fontSize = 18.sp)
-        Text("Tue: 9500 steps", fontSize = 18.sp)
-        Text("Wed: 6100 steps", fontSize = 18.sp)
+        Text("Mon: 8,200 steps", fontSize = 18.sp)
+        Text("Tue: 9,500 steps", fontSize = 18.sp)
+        Text("Wed: 6,100 steps", fontSize = 18.sp)
         Spacer(Modifier.height(32.dp))
         Button(onClick = onBack) { Text("Back to Home") }
     }
