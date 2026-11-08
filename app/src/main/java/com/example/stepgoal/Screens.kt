@@ -1,5 +1,6 @@
 package com.example.stepgoal
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.layout.*
@@ -10,11 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
+// prefs helper so we don't keep writing the same key everywhere
 object StepPrefs {
-    // Single place for the prefs name and key so we don't scatter magic strings
     private const val PREFS_NAME = "step_prefs"
     private const val KEY_GOAL = "daily_goal"
     private const val DEFAULT_GOAL = 10_000
@@ -31,18 +32,19 @@ object StepPrefs {
     }
 }
 
-class StepViewModel(context: Context) : ViewModel() {
-    private val appContext = context.applicationContext
+// viewmodel so the goal and steps stay in one place
+class StepViewModel(application: Application) : AndroidViewModel(application) {
+    private val appContext = application.applicationContext
 
     var dailyGoal by mutableIntStateOf(StepPrefs.getGoal(appContext))
         private set
 
-    // TODO: Replace with real step counter once permissions + sensor are ready
+    // still fake for now, will change later when we add the sensor
     var stepsToday by mutableIntStateOf(6_420)
         private set
 
     fun updateGoal(newGoal: Int) {
-        // Clamp so we don't save nonsense values
+        // don't let people put crazy numbers
         val clamped = newGoal.coerceIn(1_000, 50_000)
         dailyGoal = clamped
         StepPrefs.setGoal(appContext, clamped)
@@ -121,7 +123,7 @@ fun GoalsScreen(
             value = goalText,
             onValueChange = {
                 goalText = it
-                error = null
+                error = null // clear the error when they start typing again
             },
             label = { Text("Steps") },
             isError = error != null,
@@ -134,8 +136,8 @@ fun GoalsScreen(
             val parsed = goalText.toIntOrNull()
             when {
                 parsed == null -> error = "Enter a number"
-                parsed < 1000 -> error = "Minimum is 1,000 steps"
-                parsed > 50000 -> error = "Maximum is 50,000 steps"
+                parsed < 1_000 -> error = "Minimum is 1,000 steps"
+                parsed > 50_000 -> error = "Maximum is 50,000 steps"
                 else -> {
                     viewModel.updateGoal(parsed)
                     onBack()
@@ -152,7 +154,7 @@ fun GoalsScreen(
 
 @Composable
 fun HistoryScreen(onBack: () -> Unit) {
-    // Still hardcoded — will move to a real store later
+    // just hard coded for now, will make it real later
     Column(
         modifier = Modifier
             .fillMaxSize()
