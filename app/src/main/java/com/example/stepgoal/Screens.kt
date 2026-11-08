@@ -40,13 +40,11 @@ class StepViewModel(context: Context) : ViewModel() {
         private set
 
     fun updateGoal(newGoal: Int) {
-        dailyGoal = newGoal
-        StepPrefs.setGoal(appContext, newGoal)
+        val clamped = newGoal.coerceIn(1_000, 50_000)
+        dailyGoal = clamped
+        StepPrefs.setGoal(appContext, clamped)
     }
 }
-
-// ... (StepPrefs and StepViewModel same as commit 2)
-
 @Composable
 fun HomeScreen(
     viewModel: StepViewModel = viewModel(),
