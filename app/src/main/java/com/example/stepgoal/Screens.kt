@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 object StepPrefs {
+    // Single place for the prefs name and key so we don't scatter magic strings
     private const val PREFS_NAME = "step_prefs"
     private const val KEY_GOAL = "daily_goal"
     private const val DEFAULT_GOAL = 10_000
@@ -36,7 +37,8 @@ class StepViewModel(context: Context) : ViewModel() {
     var dailyGoal by mutableIntStateOf(StepPrefs.getGoal(appContext))
         private set
 
-    var stepsToday by mutableIntStateOf(6420)
+    // Still fake — replace when sensor is wired up
+    var stepsToday by mutableIntStateOf(6_420)
         private set
 
     fun updateGoal(newGoal: Int) {
@@ -45,6 +47,7 @@ class StepViewModel(context: Context) : ViewModel() {
         StepPrefs.setGoal(appContext, clamped)
     }
 }
+
 @Composable
 fun HomeScreen(
     viewModel: StepViewModel = viewModel(),
@@ -83,79 +86,3 @@ fun HomeScreen(
             val message = "I've walked $steps steps today! (Goal: $goal)"
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, message)
-            }
-            context.startActivity(Intent.createChooser(shareIntent, "Share via"))
-        }) {
-            Text("Share Progress")
-        }
-    }
-}
-
-
-@Composable
-fun GoalsScreen(
-    viewModel: StepViewModel = viewModel(),
-    onBack: () -> Unit
-) {
-    var goalText by remember { mutableStateOf(viewModel.dailyGoal.toString()) }
-    var error by remember { mutableStateOf<String?>(null) }
-
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("Set Daily Goal", fontSize = 28.sp)
-        Spacer(Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = goalText,
-            onValueChange = {
-                goalText = it
-                error = null
-            },
-            label = { Text("Steps") },
-            isError = error != null,
-            supportingText = error?.let { { Text(it) } }
-        )
-
-        Spacer(Modifier.height(24.dp))
-
-        Button(onClick = {
-            val parsed = goalText.toIntOrNull()
-            when {
-                parsed == null -> error = "Enter a number"
-                parsed < 1000 -> error = "Minimum is 1,000 steps"
-                parsed > 50000 -> error = "Maximum is 50,000 steps"
-                else -> {
-                    viewModel.updateGoal(parsed)
-                    onBack()
-                }
-            }
-        }) {
-            Text("Save Goal")
-        }
-
-        Spacer(Modifier.height(12.dp))
-        Button(onClick = onBack) { Text("Cancel") }
-    }
-}
-
-@Composable
-fun HistoryScreen(onBack: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("History", fontSize = 28.sp)
-        Spacer(Modifier.height(16.dp))
-        Text("Mon: 8200 steps", fontSize = 18.sp)
-        Text("Tue: 9500 steps", fontSize = 18.sp)
-        Text("Wed: 6100 steps", fontSize = 18.sp)
-        Spacer(Modifier.height(32.dp))
-        Button(onClick = onBack) { Text("Back to Home") }
-    }
-}
-
