@@ -11,12 +11,28 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+object StepPrefs {
+    private const val PREFS_NAME = "step_prefs"
+    private const val KEY_GOAL = "daily_goal"
+    private const val DEFAULT_GOAL = 10_000
+
+    fun getGoal(context: Context): Int =
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getInt(KEY_GOAL, DEFAULT_GOAL)
+
+    fun setGoal(context: Context, goal: Int) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putInt(KEY_GOAL, goal)
+            .apply()
+    }
+}
+
 @Composable
 fun HomeScreen(onGoToGoals: () -> Unit, onGoToHistory: () -> Unit) {
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences("step_prefs", Context.MODE_PRIVATE)
-    val goal = prefs.getInt("daily_goal", 10000)
-    val steps = 6420  // still hardcoded for now
+    val goal = StepPrefs.getGoal(context)
+    val steps = 6420
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -49,8 +65,7 @@ fun HomeScreen(onGoToGoals: () -> Unit, onGoToHistory: () -> Unit) {
 @Composable
 fun GoalsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
-    val prefs = context.getSharedPreferences("step_prefs", Context.MODE_PRIVATE)
-    var goalText by remember { mutableStateOf(prefs.getInt("daily_goal", 10000).toString()) }
+    var goalText by remember { mutableStateOf(StepPrefs.getGoal(context).toString()) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -70,7 +85,7 @@ fun GoalsScreen(onBack: () -> Unit) {
 
         Button(onClick = {
             val newGoal = goalText.toIntOrNull() ?: 10000
-            prefs.edit().putInt("daily_goal", newGoal).apply()
+            StepPrefs.setGoal(context, newGoal)
             onBack()
         }) {
             Text("Save Goal")
