@@ -45,6 +45,8 @@ class StepViewModel(context: Context) : ViewModel() {
     }
 }
 
+// ... (StepPrefs and StepViewModel same as commit 2)
+
 @Composable
 fun HomeScreen(
     viewModel: StepViewModel = viewModel(),
@@ -54,6 +56,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val steps = viewModel.stepsToday
     val goal = viewModel.dailyGoal
+    val progress = (steps.toFloat() / goal).coerceIn(0f, 1f)
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -63,6 +66,13 @@ fun HomeScreen(
         Text("Home", fontSize = 28.sp)
         Spacer(Modifier.height(16.dp))
         Text("Steps today: $steps / $goal", fontSize = 20.sp)
+
+        Spacer(Modifier.height(12.dp))
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth(0.75f)
+        )
+
         Spacer(Modifier.height(32.dp))
 
         Button(onClick = onGoToGoals) { Text("Set Goal") }
@@ -82,6 +92,7 @@ fun HomeScreen(
         }
     }
 }
+
 
 @Composable
 fun GoalsScreen(
