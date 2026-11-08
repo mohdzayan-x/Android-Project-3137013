@@ -100,6 +100,7 @@ fun GoalsScreen(
     onBack: () -> Unit
 ) {
     var goalText by remember { mutableStateOf(viewModel.dailyGoal.toString()) }
+    var error by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -111,16 +112,28 @@ fun GoalsScreen(
 
         OutlinedTextField(
             value = goalText,
-            onValueChange = { goalText = it },
-            label = { Text("Steps") }
+            onValueChange = {
+                goalText = it
+                error = null
+            },
+            label = { Text("Steps") },
+            isError = error != null,
+            supportingText = error?.let { { Text(it) } }
         )
 
         Spacer(Modifier.height(24.dp))
 
         Button(onClick = {
-            val newGoal = goalText.toIntOrNull() ?: 10000
-            viewModel.updateGoal(newGoal)
-            onBack()
+            val parsed = goalText.toIntOrNull()
+            when {
+                parsed == null -> error = "Enter a number"
+                parsed < 1000 -> error = "Minimum is 1,000 steps"
+                parsed > 50000 -> error = "Maximum is 50,000 steps"
+                else -> {
+                    viewModel.updateGoal(parsed)
+                    onBack()
+                }
+            }
         }) {
             Text("Save Goal")
         }
@@ -146,3 +159,4 @@ fun HistoryScreen(onBack: () -> Unit) {
         Button(onClick = onBack) { Text("Back to Home") }
     }
 }
+
