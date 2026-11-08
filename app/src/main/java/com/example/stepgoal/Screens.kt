@@ -37,11 +37,12 @@ class StepViewModel(context: Context) : ViewModel() {
     var dailyGoal by mutableIntStateOf(StepPrefs.getGoal(appContext))
         private set
 
-    // Still fake — replace when sensor is wired up
+    // TODO: Replace with real step counter once permissions + sensor are ready
     var stepsToday by mutableIntStateOf(6_420)
         private set
 
     fun updateGoal(newGoal: Int) {
+        // Clamp so we don't save nonsense values
         val clamped = newGoal.coerceIn(1_000, 50_000)
         dailyGoal = clamped
         StepPrefs.setGoal(appContext, clamped)
@@ -151,7 +152,7 @@ fun GoalsScreen(
 
 @Composable
 fun HistoryScreen(onBack: () -> Unit) {
-    // Hardcoded for now — will move to real storage later
+    // Still hardcoded — will move to a real store later
     Column(
         modifier = Modifier
             .fillMaxSize()
