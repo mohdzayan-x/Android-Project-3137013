@@ -60,12 +60,15 @@ fun HomeScreen(
     val progress = (steps.toFloat() / goal).coerceIn(0f, 1f)
 
     Column(
-        modifier = Modifier.fillMaxSize().padding(24.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Text("Home", fontSize = 28.sp)
         Spacer(Modifier.height(16.dp))
+
         Text("Steps today: $steps / $goal", fontSize = 20.sp)
 
         Spacer(Modifier.height(12.dp))
@@ -86,3 +89,82 @@ fun HomeScreen(
             val message = "I've walked $steps steps today! (Goal: $goal)"
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, message)
+            }
+            context.startActivity(Intent.createChooser(shareIntent, "Share via"))
+        }) {
+            Text("Share Progress")
+        }
+    }
+}
+
+@Composable
+fun GoalsScreen(
+    viewModel: StepViewModel = viewModel(),
+    onBack: () -> Unit
+) {
+    var goalText by remember { mutableStateOf(viewModel.dailyGoal.toString()) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Set Daily Goal", fontSize = 28.sp)
+        Spacer(Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = goalText,
+            onValueChange = {
+                goalText = it
+                error = null
+            },
+            label = { Text("Steps") },
+            isError = error != null,
+            supportingText = error?.let { { Text(it) } }
+        )
+
+        Spacer(Modifier.height(24.dp))
+
+        Button(onClick = {
+            val parsed = goalText.toIntOrNull()
+            when {
+                parsed == null -> error = "Enter a number"
+                parsed < 1000 -> error = "Minimum is 1,000 steps"
+                parsed > 50000 -> error = "Maximum is 50,000 steps"
+                else -> {
+                    viewModel.updateGoal(parsed)
+                    onBack()
+                }
+            }
+        }) {
+            Text("Save Goal")
+        }
+
+        Spacer(Modifier.height(12.dp))
+        Button(onClick = onBack) { Text("Cancel") }
+    }
+}
+
+@Composable
+fun HistoryScreen(onBack: () -> Unit) {
+    // Hardcoded for now — will move to real storage later
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("History", fontSize = 28.sp)
+        Spacer(Modifier.height(16.dp))
+        Text("Mon: 8200 steps", fontSize = 18.sp)
+        Text("Tue: 9500 steps", fontSize = 18.sp)
+        Text("Wed: 6100 steps", fontSize = 18.sp)
+        Spacer(Modifier.height(32.dp))
+        Button(onClick = onBack) { Text("Back to Home") }
+    }
+}
