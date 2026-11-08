@@ -80,9 +80,10 @@ fun HomeScreen(
         Spacer(Modifier.height(24.dp))
 
         Button(onClick = {
+            val message = "I've walked $steps steps today! (Goal: $goal)"
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, "I have walked $steps steps today! Goal: $goal")
+                putExtra(Intent.EXTRA_TEXT, message)
             }
             context.startActivity(Intent.createChooser(shareIntent, "Share via"))
         }) {
