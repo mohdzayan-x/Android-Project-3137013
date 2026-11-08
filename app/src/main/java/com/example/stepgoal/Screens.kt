@@ -10,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 object StepPrefs {
     private const val PREFS_NAME = "step_prefs"
@@ -28,11 +30,30 @@ object StepPrefs {
     }
 }
 
+class StepViewModel(context: Context) : ViewModel() {
+    private val appContext = context.applicationContext
+
+    var dailyGoal by mutableIntStateOf(StepPrefs.getGoal(appContext))
+        private set
+
+    var stepsToday by mutableIntStateOf(6420)
+        private set
+
+    fun updateGoal(newGoal: Int) {
+        dailyGoal = newGoal
+        StepPrefs.setGoal(appContext, newGoal)
+    }
+}
+
 @Composable
-fun HomeScreen(onGoToGoals: () -> Unit, onGoToHistory: () -> Unit) {
+fun HomeScreen(
+    viewModel: StepViewModel = viewModel(),
+    onGoToGoals: () -> Unit,
+    onGoToHistory: () -> Unit
+) {
     val context = LocalContext.current
-    val goal = StepPrefs.getGoal(context)
-    val steps = 6420
+    val steps = viewModel.stepsToday
+    val goal = viewModel.dailyGoal
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -63,9 +84,11 @@ fun HomeScreen(onGoToGoals: () -> Unit, onGoToHistory: () -> Unit) {
 }
 
 @Composable
-fun GoalsScreen(onBack: () -> Unit) {
-    val context = LocalContext.current
-    var goalText by remember { mutableStateOf(StepPrefs.getGoal(context).toString()) }
+fun GoalsScreen(
+    viewModel: StepViewModel = viewModel(),
+    onBack: () -> Unit
+) {
+    var goalText by remember { mutableStateOf(viewModel.dailyGoal.toString()) }
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -85,7 +108,7 @@ fun GoalsScreen(onBack: () -> Unit) {
 
         Button(onClick = {
             val newGoal = goalText.toIntOrNull() ?: 10000
-            StepPrefs.setGoal(context, newGoal)
+            viewModel.updateGoal(newGoal)
             onBack()
         }) {
             Text("Save Goal")
